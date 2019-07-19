@@ -22,20 +22,24 @@ io.on('connection', function (socket) {
             socket.username = data.username;
             socket.room = data.idOfRoom;
             users.push(data.username);
-            socket.broadcast.to(data.idOfRoom).emit('connection', socket.username, users);
+            socket.broadcast.to(data.idOfRoom).emit('connection', { username: socket.username });
         });
     }));
 
-    socket.on('chat message', function (msg) {
-        socket.broadcast.emit('chat message', { username: socket.username, message: msg });
+    socket.on('disconnect', function () {
+        io.in(socket.room).emit('disconnect', { username: socket.username });
     });
 
-    socket.on('is typing', function (className) {
-        socket.broadcast.emit('is typing', username, className);
+    socket.on('chat message', function (msg) {
+        socket.broadcast.to(socket.room).emit('chat message', { username: socket.username, message: msg });
+    });
+
+    socket.on('is typing', function () {
+        socket.broadcast.to(socket.room).emit('is typing', { username: socket.username });
     });
 
     socket.on('is not typing', function () {
-        io.emit('is not typing', socket.username);
+        socket.broadcast.to(socket.room).emit('is not typing', { username: socket.username });
     });
 
     socket.on('drawing', (data) => socket.broadcast.emit('drawing', data));

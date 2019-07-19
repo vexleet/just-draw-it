@@ -3,6 +3,7 @@ window.onload = function () {
 
     let pathname = location.pathname.substr(1, location.pathname.length);
     let username = '';
+    let isTyping = false;
 
     let usernameForm = document.getElementById('set-username');
     let usernameInput = document.getElementById('username');
@@ -42,27 +43,30 @@ window.onload = function () {
     }
 
     function checkIfTyping() {
-        if (chatInput.value >= 1) {
+        if (chatInput.value.length >= 1 && !isTyping) {
+            isTyping = true;
             socket.emit('is typing');
         }
-        else {
+        else if (chatInput.value.length === 0 && isTyping) {
+            isTyping = false;
             socket.emit('is not typing');
         }
     }
 
-    // socket.on('connection', function (nickname, users) {
-    //     let node = document.createElement("LI");
-    //     let textnode = document.createTextNode(`${nickname} has joined the room.`);
-    //     node.appendChild(textnode);
-    //     document.getElementById("messages").appendChild(node);
-    // });
+    socket.on('connection', function (data) {
+        let node = document.createElement("LI");
+        let textnode = document.createTextNode(`${data.username} has joined the room.`);
+        node.appendChild(textnode);
+        document.getElementById("messages").appendChild(node);
+    });
 
-    // socket.on('disconnect', function (nickname) {
-    //     let node = document.createElement("LI");
-    //     let textnode = document.createTextNode(`${nickname} has left the room.`);
-    //     node.appendChild(textnode);
-    //     document.getElementById("messages").appendChild(node);
-    // });
+    socket.on('disconnect', function (data) {
+        console.log(data);
+        let node = document.createElement("LI");
+        let textnode = document.createTextNode(`${data.username} has left the room.`);
+        node.appendChild(textnode);
+        document.getElementById("messages").appendChild(node);
+    });
 
     socket.on('chat message', function (data) {
         let node = document.createElement("LI");
@@ -71,16 +75,20 @@ window.onload = function () {
         messagesList.appendChild(node);
     });
 
-    // socket.on('is typing', function (message) {
-    //     let node = document.createElement("LI");
-    //     let textnode = document.createTextNode(message);
-    //     node.appendChild(textnode);
-    //     messagesList.appendChild(node);
+    socket.on('is typing', function (data) {
+        let node = document.createElement("LI");
+        node.classList.add(data.username);
+        let textnode = document.createTextNode(`${data.username} is typing`);
+        node.appendChild(textnode);
+        messagesList.appendChild(node);
+    });
 
-    //     socket.emit('chat message', message);
-    // }
+    socket.on('is not typing', function (data) {
+        let element = document.getElementsByClassName(data.username)[0];
+        element.remove();
+    });
 
     usernameForm.addEventListener('submit', setNickname);
     chatForm.addEventListener('submit', sendMessage);
-    chatInput.addEventListener('keydown', checkIfTyping);
+    chatInput.addEventListener('keyup', checkIfTyping);
 };
