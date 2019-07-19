@@ -1,0 +1,23 @@
+{
+    "name": "just-draw-it",
+    "version": "1.0.0",
+    "description": "JustDrawIt is an app where friends get in a room and one of them is drawing the word they were given while the others are trying to guess it.",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/vexleet/just-draw-it.git"
+    },
+    "keywords": [
+        "chat"
+    ],
+    "author": "vex1337 <abda70226@gmail.com>",
+    "license": "MIN",
+    "dependencies": {
+        "express": "^4.16.3",
+        "socket.io": "^2.1.1",
+        "nodemon": "1.19.1"
+    }
+}
