@@ -6,10 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+
+    <link rel="stylesheet" href="client/styles/style.css">
 </head>
 
 <body>
-    <h1>Hello world</h1>
+    <form id="set-username" method="POST">
+        <label for="username">Enter your username</label>
+        <input type="text" name="username" id="username">
+    </form>
+
+    <div class="chat-wrapper">
+        <ul id="users"></ul>
+        <div>
+            <ul id="messages"></ul>
+        </div>
+        <form class="chat">
+            <input id="message" autocomplete="off" />
+        </form>
+    </div>
+
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="client/scripts/room.js"></script>

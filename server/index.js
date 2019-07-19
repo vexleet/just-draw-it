@@ -14,13 +14,29 @@ app.get('/:roomId', function (req, res) {
     res.sendFile(path.join(__dirname, '../client/rooms.html'));
 });
 
+let users = [];
 
 io.on('connection', function (socket) {
-    socket.on('join room', (idOfRoom => {
-        socket.join(idOfRoom, function () {
-            socket.broadcast.to(idOfRoom).emit('my message', 'pesho has joined');
+    socket.on('join room', (data => {
+        socket.join(data.idOfRoom, function () {
+            socket.username = data.username;
+            socket.room = data.idOfRoom;
+            users.push(data.username);
+            socket.broadcast.to(data.idOfRoom).emit('connection', socket.username, users);
         });
     }));
+
+    socket.on('chat message', function (msg) {
+        socket.broadcast.emit('chat message', { username: socket.username, message: msg });
+    });
+
+    socket.on('is typing', function (className) {
+        socket.broadcast.emit('is typing', username, className);
+    });
+
+    socket.on('is not typing', function () {
+        io.emit('is not typing', socket.username);
+    });
 
     socket.on('drawing', (data) => socket.broadcast.emit('drawing', data));
 });
