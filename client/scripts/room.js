@@ -21,7 +21,7 @@ window.onload = function () {
         username = usernameInput.value;
 
         usernameForm.style.display = "none";
-        gameWrapper.style.display = "block";
+        gameWrapper.style.display = "flex";
 
         socket.emit('join room', { idOfRoom: pathname, username });
     }
