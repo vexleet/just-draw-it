@@ -8,9 +8,8 @@ window.onload = function () {
     let usernameForm = document.getElementById('set-username');
     let usernameInput = document.getElementById('username');
 
-    let chatWrapper = document.getElementsByClassName('chat-wrapper')[0];
-    let canvas = document.getElementById('myCanvas');
     let playersElement = document.getElementById('players');
+    let gameWrapper = document.getElementsByClassName('game-wrapper')[0];
 
     let chatForm = document.getElementsByClassName('chat')[0];
     let chatInput = document.getElementById('message');
@@ -22,8 +21,7 @@ window.onload = function () {
         username = usernameInput.value;
 
         usernameForm.style.display = "none";
-        chatWrapper.style.display = "block";
-        canvas.style.display = "block";
+        gameWrapper.style.display = "block";
 
         socket.emit('join room', { idOfRoom: pathname, username });
     }

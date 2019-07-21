@@ -10,19 +10,18 @@
     <link rel="stylesheet" href="client/styles/style.css">
 </head>
 
-<body>
-    <h1>JustDrawIt</h1>
+<body class="main-body">
+    <div class="main-wrapper">
+        <h1>JustDrawIt</h1>
 
-    <!-- <label for="username">Enter your username</label> -->
+        <button id="createRoom" type="button">Create Room</button>
 
-    <button id="createRoom" type="button">Create Room</button>
-
-    <button id="joinRoom">Join Room</button>
+        <button id="joinRoom">Join Room</button>
+    </div>
 
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="client/scripts/main.js"></script>
-    <!-- <script src="client/scripts/draw.js"></script> -->
 </body>
 
 </html>
