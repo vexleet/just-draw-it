@@ -1,14 +1,37 @@
+*{
+    padding: 0;
+    margin: 0;
+}
+
+body{
+    font-size: 20px;
+}
+
 #myCanvas{
-    width: 100%;
+    display: none;
+    width: 60rem;
     height: 100%;
     border: 2px solid #000;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
+}
+
+.game-wrapper{
+    display: flex;
 }
 
 .chat-wrapper{
-    display: none;  
+    display: none;
+    width: 10em;
+    border: 2px solid;
+    padding: 1em;
+}
+
+.chat-wrapper ul{
+    width: 100%;
+}
+
+.chat-wrapper ul li{
+    list-style-type: none;
+    margin-bottom: 1em;
+    width: 100%;
+    word-break: break-all;
 }

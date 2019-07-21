@@ -1,6 +1,6 @@
-(function () {
+import { socket } from './room.js';
 
-    let socket = io();
+(function () {
     let canvas = document.getElementById('myCanvas');
     let colors = document.getElementsByClassName('color');
     let context = canvas.getContext('2d');

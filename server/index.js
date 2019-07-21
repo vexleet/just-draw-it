@@ -14,35 +14,43 @@ app.get('/:roomId', function (req, res) {
     res.sendFile(path.join(__dirname, '../client/rooms.html'));
 });
 
-let users = [];
+let usernames = {};
 
 io.on('connection', function (socket) {
     socket.on('join room', (data => {
+        if (usernames.hasOwnProperty(data.username)) {
+            console.log('user already exists');
+            return;
+        }
         socket.join(data.idOfRoom, function () {
             socket.username = data.username;
             socket.room = data.idOfRoom;
-            users.push(data.username);
-            socket.broadcast.to(data.idOfRoom).emit('connection', { username: socket.username });
+            usernames[data.username] = data.username;
+            socket.to(data.idOfRoom).emit('connection', { username: socket.username, players: usernames });
+            io.in(socket.room).emit('update players', { players: usernames });
         });
     }));
 
     socket.on('disconnect', function () {
-        io.in(socket.room).emit('disconnect', { username: socket.username });
+        delete usernames[socket.username];
+
+        io.in(socket.room).emit('update players', { players: usernames });
+        io.in(socket.room).emit('disconnect', { username: socket.username, players: usernames });
     });
 
     socket.on('chat message', function (msg) {
-        socket.broadcast.to(socket.room).emit('chat message', { username: socket.username, message: msg });
+        socket.to(socket.room).emit('chat message', { username: socket.username, message: msg });
     });
 
     socket.on('is typing', function () {
-        socket.broadcast.to(socket.room).emit('is typing', { username: socket.username });
+        socket.to(socket.room).emit('is typing', { username: socket.username });
     });
 
     socket.on('is not typing', function () {
-        socket.broadcast.to(socket.room).emit('is not typing', { username: socket.username });
+        socket.to(socket.room).emit('is not typing', { username: socket.username });
     });
 
-    socket.on('drawing', (data) => socket.broadcast.emit('drawing', data));
+    socket.on('drawing', (data) => socket.to(socket.room).emit('drawing', data));
 });
 
 http.listen(3000, function () {

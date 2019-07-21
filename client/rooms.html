@@ -16,19 +16,25 @@
         <input type="text" name="username" id="username">
     </form>
 
-    <div class="chat-wrapper">
-        <ul id="users"></ul>
-        <div>
-            <ul id="messages"></ul>
+    <div class="game-wrapper">
+
+        <div class="chat-wrapper">
+            <div>
+                <ul id="messages"></ul>
+            </div>
+            <form class="chat">
+                <input id="message" autocomplete="off" />
+            </form>
         </div>
-        <form class="chat">
-            <input id="message" autocomplete="off" />
-        </form>
+
+        <canvas id="myCanvas"></canvas>
+
+        <ul id="players"></ul>
     </div>
 
-
     <script src="/socket.io/socket.io.js"></script>
-    <script src="client/scripts/room.js"></script>
+    <script type="module" src="client/scripts/room.js"></script>
+    <script type="module" src="client/scripts/draw.js"></script>
 </body>
 
 </html>

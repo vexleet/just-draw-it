@@ -1,5 +1,4 @@
 window.onload = function () {
-    let socket = io();
     let chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
 
     let createRoomButton = document.getElementById('createRoom');
@@ -27,8 +26,4 @@ window.onload = function () {
 
     createRoomButton.addEventListener("click", createRoom);
     // joinRoomButton.addEventListener("click", joinRoom);
-
-    socket.on('updatechat', function (msg) {
-        console.log(msg);
-    });
 };

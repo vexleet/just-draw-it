@@ -1,6 +1,6 @@
-window.onload = function () {
-    let socket = io();
+let socket = io();
 
+window.onload = function () {
     let pathname = location.pathname.substr(1, location.pathname.length);
     let username = '';
     let isTyping = false;
@@ -9,6 +9,8 @@ window.onload = function () {
     let usernameInput = document.getElementById('username');
 
     let chatWrapper = document.getElementsByClassName('chat-wrapper')[0];
+    let canvas = document.getElementById('myCanvas');
+    let playersElement = document.getElementById('players');
 
     let chatForm = document.getElementsByClassName('chat')[0];
     let chatInput = document.getElementById('message');
@@ -21,6 +23,7 @@ window.onload = function () {
 
         usernameForm.style.display = "none";
         chatWrapper.style.display = "block";
+        canvas.style.display = "block";
 
         socket.emit('join room', { idOfRoom: pathname, username });
     }
@@ -53,6 +56,26 @@ window.onload = function () {
         }
     }
 
+    // buggy for now
+    function updatePlayers(players) {
+        // while (playersElement.firstChild) {
+        //     playersElement.removeChild(playersElement.firstChild);
+        // }
+
+        // const keys = Object.keys(players);
+
+        // for (const key of keys) {
+        //     let node = document.createElement("LI");
+        //     let textnode = document.createTextNode(key);
+        //     node.appendChild(textnode);
+        //     playersElement.appendChild(node);
+        // }
+    }
+
+    socket.on('update players', function (data) {
+        updatePlayers(data.players);
+    });
+
     socket.on('connection', function (data) {
         let node = document.createElement("LI");
         let textnode = document.createTextNode(`${data.username} has joined the room.`);
@@ -61,11 +84,12 @@ window.onload = function () {
     });
 
     socket.on('disconnect', function (data) {
-        console.log(data);
         let node = document.createElement("LI");
         let textnode = document.createTextNode(`${data.username} has left the room.`);
         node.appendChild(textnode);
         document.getElementById("messages").appendChild(node);
+
+        updatePlayers(data.players);
     });
 
     socket.on('chat message', function (data) {
@@ -92,3 +116,4 @@ window.onload = function () {
     chatForm.addEventListener('submit', sendMessage);
     chatInput.addEventListener('keyup', checkIfTyping);
 };
+export { socket };
