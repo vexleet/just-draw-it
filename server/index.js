@@ -80,6 +80,32 @@ io.on('connection', function (socket) {
         socket.emit('join random room', { room: randomRoom });
     });
 
+    socket.on('start game', function () {
+        let allPlayers = [];
+        let orderOfPlayers = [];
+
+        let usersInSameRoom = Object.filter(usernames, username => username.room === socket.room);
+
+        const keys = Object.keys(usersInSameRoom);
+
+        for (const key of keys) {
+            allPlayers.push(usersInSameRoom[key].username);
+        }
+
+        for (let i = 0; i < allPlayers.length; i++) {
+            if (orderOfPlayers.indexOf(allPlayers[i]) === -1) {
+                orderOfPlayers.push(allPlayers[i]);
+            }
+        }
+
+        socket.to(socket.room).emit('start game', { order: orderOfPlayers });
+        socket.to(socket.room).emit('start game drawing', { order: orderOfPlayers });
+    });
+
+    socket.on('get socket name', function () {
+        socket.emit('receive socket name', socket.username);
+    });
+
     socket.on('disconnect', function () {
         let indexOfRoom = rooms.findIndexOfRoom(socket);
 
@@ -92,7 +118,6 @@ io.on('connection', function (socket) {
         }
 
         delete usernames[socket.id];
-
 
         io.in(socket.room)
             .emit('update players', {
@@ -114,7 +139,7 @@ io.on('connection', function (socket) {
         socket.to(socket.room).emit('is not typing', { username: socket.username });
     });
 
-    socket.on('drawing', (data) => socket.to(socket.room).emit('drawing', data));
+    socket.on('drawing', (data) => io.in(socket.room).emit('drawing', { canvas: data, drawer: socket.username }));
 });
 
 http.listen(3000, function () {

@@ -190,3 +190,7 @@ body{
     text-decoration: none;
     cursor: pointer;
 }
+
+.modal-content-rooms p{
+    padding-top: 0;
+}

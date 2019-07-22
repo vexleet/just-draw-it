@@ -5,6 +5,11 @@ import { socket } from './room.js';
     let colors = document.getElementsByClassName('color');
     let context = canvas.getContext('2d');
 
+    let currentPlayer = '';
+    let orderOfPlayers = [];
+
+    let socketName = '';
+
     let current = {
         color: 'black'
     };
@@ -26,30 +31,46 @@ import { socket } from './room.js';
     }
 
     socket.on('drawing', onDrawingEvent);
+    socket.on('start game drawing', function (data) {
+        orderOfPlayers = data.order;
+
+        startGame();
+    });
+
+    function startGame() {
+        currentPlayer = orderOfPlayers.shift();
+        orderOfPlayers.push(currentPlayer);
+    }
 
     window.addEventListener('resize', onResize, false);
     onResize();
 
 
     function drawLine(x0, y0, x1, y1, color, emit) {
-        context.beginPath();
-        context.moveTo(x0, y0);
-        context.lineTo(x1, y1);
-        context.strokeStyle = color;
-        context.lineWidth = 2;
-        context.stroke();
-        context.closePath();
+        socket.emit('get socket name');
 
-        if (!emit) { return; }
-        let w = canvas.width;
-        let h = canvas.height;
+        socket.on('receive socket name', function (socketUsername) {
+            if (socketUsername === currentPlayer) {
+                context.beginPath();
+                context.moveTo(x0, y0);
+                context.lineTo(x1, y1);
+                context.strokeStyle = color;
+                context.lineWidth = 2;
+                context.stroke();
+                context.closePath();
 
-        socket.emit('drawing', {
-            x0: x0 / w,
-            y0: y0 / h,
-            x1: x1 / w,
-            y1: y1 / h,
-            color: color
+                if (!emit) { return; }
+                let w = canvas.width;
+                let h = canvas.height;
+
+                socket.emit('drawing', {
+                    x0: x0 / w,
+                    y0: y0 / h,
+                    x1: x1 / w,
+                    y1: y1 / h,
+                    color: color
+                });
+            }
         });
     }
 
@@ -92,7 +113,7 @@ import { socket } from './room.js';
     function onDrawingEvent(data) {
         let w = canvas.width;
         let h = canvas.height;
-        drawLine(data.x0 * w, data.y0 * h, data.x1 * w, data.y1 * h, data.color);
+        drawLine(data.canvas.x0 * w, data.canvas.y0 * h, data.canvas.x1 * w, data.canvas.y1 * h, data.canvas.color);
     }
 
     // make the canvas fill its parent
