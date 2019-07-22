@@ -94,7 +94,6 @@ window.onload = function () {
         document.getElementById("messages").appendChild(node);
 
         scrollToBottom();
-        updatePlayers(data.players);
     });
 
     socket.on('chat message', function (data) {

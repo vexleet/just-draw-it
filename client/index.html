@@ -16,9 +16,18 @@
 
         <button id="createRoom" type="button">Create Room</button>
 
-        <button id="joinRoom">Join Room</button>
+        <button id="joinRoom" type="button">Join Room</button>
     </div>
 
+    <div id="myModal" class="modal">
+
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p>No rooms available at the moment.</p>
+            <p>Maybe create your own?</p>
+        </div>
+
+    </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="client/scripts/main.js"></script>
