@@ -98,7 +98,6 @@ import { socket } from './room.js';
     // make the canvas fill its parent
     function onResize() {
         canvas.width = window.innerWidth - 300;
-        console.log(window.innerWidth);
         canvas.height = window.innerHeight;
     }
 

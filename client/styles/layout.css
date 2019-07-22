@@ -64,23 +64,44 @@ body{
 }
 
 .chat-wrapper{
-    width: 15em;
+    width: 100%;
     border: 2px solid;
+    background-color: #eee;
 }
 
-.chat-wrapper ul{
+.chat-wrapper #messages{
     width: 100%;
+    overflow: auto;
+    height: 50vh;
 }
 
 .chat-wrapper ul li{
     list-style-type: none;
-    margin-bottom: 1em;
+    padding: 5px;
     width: 100%;
     word-break: break-all;
 }
 
+.chat-wrapper ul li:nth-child(even){
+    background: #fff;
+}
+
+.chat-wrapper > div{
+    display: flex;
+    flex-direction: column;
+}
+
 .chat {
-    padding-left: 2em;
+    padding: 5px;
+    background: none;
+}
+
+.chat input{
+    width: 100%;
+    padding: 5px;
+    border-radius: 5px;
+    outline: none;
+    border: 1px solid;
 }
 
 #set-username{

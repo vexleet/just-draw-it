@@ -40,6 +40,7 @@ window.onload = function () {
             socket.emit('chat message', message);
         }
 
+        scrollToBottom();
         chatInput.value = "";
     }
 
@@ -54,20 +55,23 @@ window.onload = function () {
         }
     }
 
-    // buggy for now
+    function scrollToBottom() {
+        messagesList.scrollTop = messagesList.scrollHeight;
+    }
+
     function updatePlayers(players) {
-        // while (playersElement.firstChild) {
-        //     playersElement.removeChild(playersElement.firstChild);
-        // }
+        while (playersElement.firstChild) {
+            playersElement.removeChild(playersElement.firstChild);
+        }
 
-        // const keys = Object.keys(players);
+        const keys = Object.keys(players);
 
-        // for (const key of keys) {
-        //     let node = document.createElement("LI");
-        //     let textnode = document.createTextNode(key);
-        //     node.appendChild(textnode);
-        //     playersElement.appendChild(node);
-        // }
+        for (const key of keys) {
+            let node = document.createElement("LI");
+            let textnode = document.createTextNode(players[key].username);
+            node.appendChild(textnode);
+            playersElement.appendChild(node);
+        }
     }
 
     socket.on('update players', function (data) {
@@ -79,6 +83,8 @@ window.onload = function () {
         let textnode = document.createTextNode(`${data.username} has joined the room.`);
         node.appendChild(textnode);
         document.getElementById("messages").appendChild(node);
+
+        scrollToBottom();
     });
 
     socket.on('disconnect', function (data) {
@@ -87,6 +93,7 @@ window.onload = function () {
         node.appendChild(textnode);
         document.getElementById("messages").appendChild(node);
 
+        scrollToBottom();
         updatePlayers(data.players);
     });
 
@@ -95,6 +102,8 @@ window.onload = function () {
         let textnode = document.createTextNode(`${data.username}: ${data.message}`);
         node.appendChild(textnode);
         messagesList.appendChild(node);
+
+        scrollToBottom();
     });
 
     socket.on('is typing', function (data) {
@@ -103,6 +112,8 @@ window.onload = function () {
         let textnode = document.createTextNode(`${data.username} is typing`);
         node.appendChild(textnode);
         messagesList.appendChild(node);
+
+        scrollToBottom();
     });
 
     socket.on('is not typing', function (data) {

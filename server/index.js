@@ -16,6 +16,12 @@ app.get('/:roomId', function (req, res) {
 
 let usernames = {};
 
+Object.filter = (obj, predicate) =>
+    Object.keys(obj)
+        .filter(key => predicate(obj[key]))
+        .reduce((res, key) => (res[key] = obj[key], res), {});
+
+
 io.on('connection', function (socket) {
     socket.on('join room', (data => {
         if (usernames.hasOwnProperty(data.username)) {
@@ -25,17 +31,31 @@ io.on('connection', function (socket) {
         socket.join(data.idOfRoom, function () {
             socket.username = data.username;
             socket.room = data.idOfRoom;
-            usernames[data.username] = data.username;
-            socket.to(data.idOfRoom).emit('connection', { username: socket.username, players: usernames });
-            io.in(socket.room).emit('update players', { players: usernames });
+            usernames[socket.id] = { username: data.username, room: data.idOfRoom };
+
+            socket.to(data.idOfRoom)
+                .emit('connection',
+                    {
+                        username: socket.username,
+                        players: Object.filter(usernames, username => username.room === socket.room)
+                    });
+
+            io.in(socket.room)
+                .emit('update players',
+                    { players: Object.filter(usernames, username => username.room === socket.room) });
         });
     }));
 
     socket.on('disconnect', function () {
-        delete usernames[socket.username];
+        delete usernames[socket.id];
 
         io.in(socket.room).emit('update players', { players: usernames });
-        io.in(socket.room).emit('disconnect', { username: socket.username, players: usernames });
+        io.in(socket.room)
+            .emit('disconnect',
+                {
+                    username: socket.username,
+                    players: Object.filter(usernames, username => username.room === socket.room)
+                });
     });
 
     socket.on('chat message', function (msg) {
