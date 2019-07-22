@@ -59,6 +59,24 @@ body{
     border: 2px solid #000;
 }
 
+.colors {
+    position: fixed;
+    left: 1%;
+    top: 90%;
+}
+
+.color {
+    display: inline-block;
+    height: 48px;
+    width: 48px;
+}
+
+.color.black { background-color: black; }
+.color.red { background-color: red; }
+.color.green { background-color: green; }
+.color.blue { background-color: blue; }
+.color.yellow { background-color: yellow; }
+
 .game-wrapper{
     display: none;
 }
