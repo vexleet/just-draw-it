@@ -194,3 +194,8 @@ body{
 .modal-content-rooms p{
     padding-top: 0;
 }
+
+#timer{
+    position: absolute;
+    font-size: 1em;
+}

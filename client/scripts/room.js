@@ -4,12 +4,15 @@ let pathname = location.pathname.substr(1, location.pathname.length);
 let username = '';
 let isTyping = false;
 
+let gameIsInProgress = false;
+
 let orderOfPlayers = [];
-let allPlayers = [];
+let playersWhoAlreadyPainted = [];
 let currentPlayer = '';
 
 let timer;
-let roundSeconds = 90;
+let roundSeconds = 10;
+let timerElement = document.getElementById('timer');
 
 let usernameForm = document.getElementById('set-username');
 let usernameInput = document.getElementById('username');
@@ -63,7 +66,7 @@ function checkIfTyping() {
     }
 }
 
-function scrollToBottom() {
+function scrollToBottom(e) {
     messagesList.scrollTop = messagesList.scrollHeight;
 }
 
@@ -88,26 +91,51 @@ function checkIfEnoughPlayers(players) {
     let numberOfPlayers = Object.keys(players).length;
 
     if (numberOfPlayers === 1) {
+        gameIsInProgress = false;
         modal.style.display = "block";
     }
-    else {
+    else if (numberOfPlayers === 2) {
+        gameIsInProgress = true;
         modal.style.display = "none";
         socket.emit('start game');
     }
 }
 
+socket.on('timer', function (time) {
+    roundSeconds = time;
+});
+
 function startGame() {
     timer = setInterval(function () {
         roundSeconds -= 1;
 
+        timerElement.innerHTML = roundSeconds;
+
+
         if (roundSeconds <= 0) {
             clearInterval(timer);
-            console.log('run out of time');
+
+            socket.emit('start round');
+
+            if (orderOfPlayers.length === 0) {
+                orderOfPlayers = playersWhoAlreadyPainted;
+                playersWhoAlreadyPainted = [];
+            }
+
+            roundSeconds = 10;
+            startGame();
         }
     }, 1000);
 
     currentPlayer = orderOfPlayers.shift();
-    orderOfPlayers.push(currentPlayer);
+    playersWhoAlreadyPainted.push(currentPlayer);
+
+    let node = document.createElement("LI");
+    let textnode = document.createTextNode(`${currentPlayer} is drawing now.`);
+    node.appendChild(textnode);
+    messagesList.appendChild(node);
+
+    scrollToBottom();
 }
 
 socket.on('start game', function (data) {
@@ -125,6 +153,10 @@ socket.on('connection', function (data) {
     let textnode = document.createTextNode(`${data.username} has joined the room.`);
     node.appendChild(textnode);
     document.getElementById("messages").appendChild(node);
+
+    if (gameIsInProgress) {
+        orderOfPlayers.push(data.username);
+    }
 
     scrollToBottom();
 });

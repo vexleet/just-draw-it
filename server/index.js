@@ -102,6 +102,10 @@ io.on('connection', function (socket) {
         socket.to(socket.room).emit('start game drawing', { order: orderOfPlayers });
     });
 
+    socket.on('start round', function () {
+        socket.emit('start round');
+    });
+
     socket.on('get socket name', function () {
         socket.emit('receive socket name', socket.username);
     });

@@ -8,38 +8,61 @@ import { socket } from './room.js';
     let currentPlayer = '';
     let orderOfPlayers = [];
 
-    let socketName = '';
+    let hasEventListener = false;
 
     let current = {
         color: 'black'
     };
     let drawing = false;
 
-    canvas.addEventListener('mousedown', onMouseDown, false);
-    canvas.addEventListener('mouseup', onMouseUp, false);
-    canvas.addEventListener('mouseout', onMouseUp, false);
-    canvas.addEventListener('mousemove', throttle(onMouseMove, 10), false);
+    socket.on('receive socket name', function (socketUsername) {
+        if (socketUsername === currentPlayer) {
+            hasEventListener = true;
 
-    //Touch support for mobile devices
-    canvas.addEventListener('touchstart', onMouseDown, false);
-    canvas.addEventListener('touchend', onMouseUp, false);
-    canvas.addEventListener('touchcancel', onMouseUp, false);
-    canvas.addEventListener('touchmove', throttle(onMouseMove, 10), false);
+            canvas.addEventListener('mousedown', onMouseDown, false);
+            canvas.addEventListener('mouseup', onMouseUp, false);
+            canvas.addEventListener('mouseout', onMouseUp, false);
+            canvas.addEventListener('mousemove', throttle(onMouseMove, 10), false);
+
+            //Touch support for mobile devices
+            canvas.addEventListener('touchstart', onMouseDown, false);
+            canvas.addEventListener('touchend', onMouseUp, false);
+            canvas.addEventListener('touchcancel', onMouseUp, false);
+            canvas.addEventListener('touchmove', throttle(onMouseMove, 10), false);
+        }
+    });
 
     for (let i = 0; i < colors.length; i++) {
         colors[i].addEventListener('click', onColorUpdate, false);
     }
 
     socket.on('drawing', onDrawingEvent);
+
     socket.on('start game drawing', function (data) {
         orderOfPlayers = data.order;
 
         startGame();
     });
 
+    socket.on('start round', function () {
+        if (hasEventListener) {
+            canvas.removeEventListener('mousedown', onMouseDown, false);
+            canvas.removeEventListener('mouseup', onMouseUp, false);
+            canvas.removeEventListener('mouseout', onMouseUp, false);
+            canvas.removeEventListener('mousemove', throttle(onMouseMove, 10), false);
+
+            hasEventListener = !hasEventListener;
+        }
+
+        clearCanvas();
+        startGame();
+    });
+
     function startGame() {
         currentPlayer = orderOfPlayers.shift();
         orderOfPlayers.push(currentPlayer);
+
+        socket.emit('get socket name');
     }
 
     window.addEventListener('resize', onResize, false);
@@ -47,30 +70,24 @@ import { socket } from './room.js';
 
 
     function drawLine(x0, y0, x1, y1, color, emit) {
-        socket.emit('get socket name');
+        context.beginPath();
+        context.moveTo(x0, y0);
+        context.lineTo(x1, y1);
+        context.strokeStyle = color;
+        context.lineWidth = 2;
+        context.stroke();
+        context.closePath();
 
-        socket.on('receive socket name', function (socketUsername) {
-            if (socketUsername === currentPlayer) {
-                context.beginPath();
-                context.moveTo(x0, y0);
-                context.lineTo(x1, y1);
-                context.strokeStyle = color;
-                context.lineWidth = 2;
-                context.stroke();
-                context.closePath();
+        if (!emit) { return; }
+        let w = canvas.width;
+        let h = canvas.height;
 
-                if (!emit) { return; }
-                let w = canvas.width;
-                let h = canvas.height;
-
-                socket.emit('drawing', {
-                    x0: x0 / w,
-                    y0: y0 / h,
-                    x1: x1 / w,
-                    y1: y1 / h,
-                    color: color
-                });
-            }
+        socket.emit('drawing', {
+            x0: x0 / w,
+            y0: y0 / h,
+            x1: x1 / w,
+            y1: y1 / h,
+            color: color
         });
     }
 
@@ -120,6 +137,10 @@ import { socket } from './room.js';
     function onResize() {
         canvas.width = window.innerWidth - 300;
         canvas.height = window.innerHeight;
+    }
+
+    function clearCanvas() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
     }
 
 })();
