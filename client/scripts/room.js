@@ -2,7 +2,6 @@ let socket = io();
 
 let pathname = location.pathname.substr(1, location.pathname.length);
 let username = '';
-let isTyping = false;
 
 let gameIsInProgress = false;
 
@@ -84,26 +83,71 @@ function checkIfEnoughPlayers(players) {
         modal.style.display = "block";
     }
     else if (numberOfPlayers === 2) {
-        gameIsInProgress = true;
         modal.style.display = "none";
         socket.emit('start game');
+        gameIsInProgress = true;
+    }
+    else {
+        playerJoinedInTheMiddleOfTheGame();
     }
 }
 
-socket.on('timer', function (time) {
-    roundSeconds = time;
-});
+function playerJoinedInTheMiddleOfTheGame() {
+    if (currentPlayer === '') {
+        socket.emit('player joined in the middle of the game');
+
+        socket.on('player joined in the middle of the game', function (data) {
+            roundSeconds = data.timer - 1;
+            orderOfPlayers = data.orderOfPlayers;
+            currentPlayer = data.currentPlayer;
+
+            gameIsInProgress = true;
+
+            let indexOfCurrentPlayer = orderOfPlayers.indexOf(currentPlayer);
+            orderOfPlayers.splice(indexOfCurrentPlayer, 1);
+
+            playersWhoAlreadyPainted.push(currentPlayer);
+
+            timer = setInterval(function () {
+                roundSeconds -= 1
+
+                timerElement.innerHTML = roundSeconds;
+
+                if (roundSeconds <= 0) {
+                    socket.emit('start round');
+
+                    roundSeconds = 10;
+
+                    if (orderOfPlayers.length === 0) {
+                        orderOfPlayers = playersWhoAlreadyPainted;
+                        playersWhoAlreadyPainted = [];
+                    }
+
+                    currentPlayer = orderOfPlayers.shift();
+                    playersWhoAlreadyPainted.push(currentPlayer);
+                    console.log(orderOfPlayers, false);
+
+                    let node = document.createElement("LI");
+                    let textnode = document.createTextNode(`${currentPlayer} is drawing now.`);
+                    node.appendChild(textnode);
+                    messagesList.appendChild(node);
+
+                    scrollToBottom();
+                }
+            }, 1000);
+        });
+    }
+}
 
 function startGame() {
     timer = setInterval(function () {
-        roundSeconds -= 1;
+        socket.emit('timer test', roundSeconds);
+
+        roundSeconds -= 1
 
         timerElement.innerHTML = roundSeconds;
 
-
         if (roundSeconds <= 0) {
-            clearInterval(timer);
-
             socket.emit('start round');
 
             if (orderOfPlayers.length === 0) {
@@ -112,12 +156,26 @@ function startGame() {
             }
 
             roundSeconds = 10;
-            startGame();
+
+            currentPlayer = orderOfPlayers.shift();
+            playersWhoAlreadyPainted.push(currentPlayer);
+            console.log(playersWhoAlreadyPainted);
+
+            socket.emit('change state of room', { currentPlayer, orderOfPlayers });
+
+            let node = document.createElement("LI");
+            let textnode = document.createTextNode(`${currentPlayer} is drawing now.`);
+            node.appendChild(textnode);
+            messagesList.appendChild(node);
+
+            scrollToBottom();
         }
     }, 1000);
 
     currentPlayer = orderOfPlayers.shift();
     playersWhoAlreadyPainted.push(currentPlayer);
+
+    socket.emit('change state of room', { currentPlayer, orderOfPlayers });
 
     let node = document.createElement("LI");
     let textnode = document.createTextNode(`${currentPlayer} is drawing now.`);
@@ -145,6 +203,8 @@ socket.on('connection', function (data) {
 
     if (gameIsInProgress) {
         orderOfPlayers.push(data.username);
+        console.log(orderOfPlayers);
+        socket.emit('change state of room', { currentPlayer, orderOfPlayers });
     }
 
     scrollToBottom();

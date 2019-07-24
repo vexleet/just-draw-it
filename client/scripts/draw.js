@@ -5,8 +5,11 @@ import { socket } from './room.js';
     let colors = document.getElementsByClassName('color');
     let context = canvas.getContext('2d');
 
+    let gameIsInProgress = false;
+
     let currentPlayer = '';
     let orderOfPlayers = [];
+    let playersWhoAlreadyPainted = [];
 
     let hasEventListener = false;
 
@@ -40,11 +43,13 @@ import { socket } from './room.js';
 
     socket.on('start game drawing', function (data) {
         orderOfPlayers = data.order;
+        gameIsInProgress = true;
 
         startGame();
     });
 
     socket.on('start round', function () {
+
         if (hasEventListener) {
             canvas.removeEventListener('mousedown', onMouseDown, false);
             canvas.removeEventListener('mouseup', onMouseUp, false);
@@ -54,8 +59,30 @@ import { socket } from './room.js';
             hasEventListener = !hasEventListener;
         }
 
+        // if (orderOfPlayers.length === 0) {
+        //     orderOfPlayers = playersWhoAlreadyPainted;
+        //     playersWhoAlreadyPainted = [];
+        // }
+
+        console.log(true);
+
         clearCanvas();
         startGame();
+    });
+
+    socket.on('connection', function (data) {
+        // if (gameIsInProgress) {
+        //     orderOfPlayers.push(data.username);
+        //     console.log(orderOfPlayers);
+        // }
+    });
+
+
+    socket.on('player joined in the middle of the game', function (data) {
+        orderOfPlayers = data.orderOfPlayers;
+        currentPlayer = data.currentPlayer;
+
+        orderOfPlayers.push(data.username);
     });
 
     function startGame() {

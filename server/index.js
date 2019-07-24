@@ -37,7 +37,6 @@ Array.prototype.findIndexOfRoom = (socket) => {
     return indexOfRoom;
 };
 
-
 io.on('connection', function (socket) {
     socket.on('join room', (data => {
         if (usernames.hasOwnProperty(data.username)) {
@@ -53,7 +52,7 @@ io.on('connection', function (socket) {
             let indexOfRoom = rooms.findIndexOfRoom(socket);
 
             if (indexOfRoom === -1) {
-                rooms.push({ room: data.idOfRoom, players: 1 });
+                rooms.push({ room: data.idOfRoom, players: 1, timer: 10, currentPlayer: '', orderOfPlayers: [] });
             }
             else {
                 rooms[indexOfRoom]['players'] += 1;
@@ -102,12 +101,46 @@ io.on('connection', function (socket) {
         socket.to(socket.room).emit('start game drawing', { order: orderOfPlayers });
     });
 
+    socket.on('timer test', function (timer) {
+        let indexOfRoom = rooms.findIndexOfRoom(socket);
+
+        if (rooms[indexOfRoom]['timer'] !== timer) {
+            rooms[indexOfRoom]['timer'] = timer;
+        }
+    });
+
     socket.on('start round', function () {
         socket.emit('start round');
     });
 
     socket.on('get socket name', function () {
         socket.emit('receive socket name', socket.username);
+    });
+
+    socket.on('change state of room', function (data) {
+        let indexOfRoom = rooms.findIndexOfRoom(socket);
+
+        rooms[indexOfRoom]['currentPlayer'] = data.currentPlayer;
+        rooms[indexOfRoom]['orderOfPlayers'] = data.orderOfPlayers;
+    });
+
+    socket.on('player joined in the middle of the game', function () {
+        let indexOfRoom = rooms.findIndexOfRoom(socket);
+
+        let currentPlayer = rooms[indexOfRoom]['currentPlayer'];
+        let timer = rooms[indexOfRoom]['timer'];
+        let orderOfPlayers = rooms[indexOfRoom]['orderOfPlayers'];
+
+        socket.emit('player joined in the middle of the game',
+            { currentPlayer, timer, orderOfPlayers, username: socket.username });
+    });
+
+    socket.on('get current time', function () {
+        let indexOfRoom = rooms.findIndexOfRoom(socket);
+
+        let currentTime = rooms[indexOfRoom]['timer'];
+
+        socket.emit('get current time', currentTime);
     });
 
     socket.on('disconnect', function () {
