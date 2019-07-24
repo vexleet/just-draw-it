@@ -135,14 +135,6 @@ io.on('connection', function (socket) {
         socket.to(socket.room).emit('chat message', { username: socket.username, message: msg });
     });
 
-    socket.on('is typing', function () {
-        socket.to(socket.room).emit('is typing', { username: socket.username });
-    });
-
-    socket.on('is not typing', function () {
-        socket.to(socket.room).emit('is not typing', { username: socket.username });
-    });
-
     socket.on('drawing', (data) => io.in(socket.room).emit('drawing', { canvas: data, drawer: socket.username }));
 });
 

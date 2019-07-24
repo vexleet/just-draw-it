@@ -55,17 +55,6 @@ function sendMessage(e) {
     chatInput.value = "";
 }
 
-function checkIfTyping() {
-    if (chatInput.value.length >= 1 && !isTyping) {
-        isTyping = true;
-        socket.emit('is typing');
-    }
-    else if (chatInput.value.length === 0 && isTyping) {
-        isTyping = false;
-        socket.emit('is not typing');
-    }
-}
-
 function scrollToBottom(e) {
     messagesList.scrollTop = messagesList.scrollHeight;
 }
@@ -179,23 +168,7 @@ socket.on('chat message', function (data) {
     scrollToBottom();
 });
 
-socket.on('is typing', function (data) {
-    let node = document.createElement("LI");
-    node.classList.add(data.username);
-    let textnode = document.createTextNode(`${data.username} is typing`);
-    node.appendChild(textnode);
-    messagesList.appendChild(node);
-
-    scrollToBottom();
-});
-
-socket.on('is not typing', function (data) {
-    let element = document.getElementsByClassName(data.username)[0];
-    element.remove();
-});
-
 usernameForm.addEventListener('submit', setNickname);
 chatForm.addEventListener('submit', sendMessage);
-chatInput.addEventListener('keyup', checkIfTyping);
 
 export { socket };
