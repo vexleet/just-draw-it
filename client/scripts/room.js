@@ -24,17 +24,31 @@ let chatInput = document.getElementById('message');
 
 let messagesList = document.getElementById("messages");
 
-let modal = document.getElementById("myModal");
+let modal = document.getElementById("players-modal");
+let usernameModal = document.getElementById('username-modal');
+
+let span = document.getElementsByClassName("close")[0];
 
 function setNickname(e) {
     e.preventDefault();
     username = usernameInput.value;
 
-    usernameForm.style.display = "none";
-    gameWrapper.style.display = "flex";
-
-    socket.emit('join room', { idOfRoom: pathname, username });
+    socket.emit('check username', { username, idOfRoom: pathname });
 }
+
+socket.on('check username', function (isTaken) {
+    if (isTaken) {
+        usernameInput.value = '';
+        username = '';
+        usernameModal.style.display = "block";
+    }
+    else {
+        usernameForm.style.display = "none";
+        gameWrapper.style.display = "flex";
+
+        socket.emit('join room', { idOfRoom: pathname, username });
+    }
+});
 
 function sendMessage(e) {
     e.preventDefault();
@@ -234,5 +248,15 @@ socket.on('chat message', function (data) {
 
 usernameForm.addEventListener('submit', setNickname);
 chatForm.addEventListener('submit', sendMessage);
+
+span.addEventListener("click", function () {
+    usernameModal.style.display = "none";
+})
+
+window.addEventListener("click", function (event) {
+    if (event.target === modal) {
+        usernameModal.style.display = "none";
+    }
+});
 
 export { socket };

@@ -39,11 +39,6 @@ Array.prototype.findIndexOfRoom = (socket) => {
 
 io.on('connection', function (socket) {
     socket.on('join room', (data => {
-        if (usernames.hasOwnProperty(data.username)) {
-            console.log('user already exists');
-            return;
-        }
-
         socket.join(data.idOfRoom, function () {
             socket.username = data.username;
             socket.room = data.idOfRoom;
@@ -69,6 +64,27 @@ io.on('connection', function (socket) {
                 });
         });
     }));
+
+    socket.on('check username', function (data) {
+        let usersInSameRoom = Object.filter(usernames, username => username.room === data.idOfRoom);
+        let keys = Object.keys(usersInSameRoom);
+
+        let isTaken = false;
+
+        if (keys.length > 0) {
+            for (let key of keys) {
+                if (usersInSameRoom[key]['username'] === data.username) {
+                    isTaken = true;
+                    break;
+                }
+            }
+
+            socket.emit('check username', isTaken);
+        }
+        else {
+            socket.emit('check username', isTaken);
+        }
+    });
 
     socket.on('join random room', function () {
         if (rooms.length === 0) {
