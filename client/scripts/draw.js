@@ -49,7 +49,6 @@ import { socket } from './room.js';
     });
 
     socket.on('start round', function () {
-
         if (hasEventListener) {
             canvas.removeEventListener('mousedown', onMouseDown, false);
             canvas.removeEventListener('mouseup', onMouseUp, false);
@@ -59,35 +58,45 @@ import { socket } from './room.js';
             hasEventListener = !hasEventListener;
         }
 
-        // if (orderOfPlayers.length === 0) {
-        //     orderOfPlayers = playersWhoAlreadyPainted;
-        //     playersWhoAlreadyPainted = [];
-        // }
-
-        console.log(true);
-
         clearCanvas();
         startGame();
     });
 
     socket.on('connection', function (data) {
-        // if (gameIsInProgress) {
-        //     orderOfPlayers.push(data.username);
-        //     console.log(orderOfPlayers);
-        // }
+        if (gameIsInProgress) {
+            console.log(data);
+
+            orderOfPlayers.push(data.username);
+        }
+    });
+
+    socket.on('disconnect', function (data) {
+        if (gameIsInProgress) {
+            let indexofPlayer = orderOfPlayers.indexOf(data.username);
+
+            orderOfPlayers.splice(indexofPlayer, 1);
+        }
     });
 
 
     socket.on('player joined in the middle of the game', function (data) {
-        orderOfPlayers = data.orderOfPlayers;
-        currentPlayer = data.currentPlayer;
+        if (currentPlayer === '') {
+            orderOfPlayers = orderOfPlayers.concat(data.orderOfPlayers);
+            currentPlayer = data.currentPlayer;
+            playersWhoAlreadyPainted = playersWhoAlreadyPainted.concat(data.playersWhoAlreadyPainted);
 
-        orderOfPlayers.push(data.username);
+            gameIsInProgress = true;
+        }
     });
 
     function startGame() {
+        if (orderOfPlayers.length === 0) {
+            orderOfPlayers = playersWhoAlreadyPainted;
+            playersWhoAlreadyPainted = [];
+        }
+
         currentPlayer = orderOfPlayers.shift();
-        orderOfPlayers.push(currentPlayer);
+        playersWhoAlreadyPainted.push(currentPlayer);
 
         socket.emit('get socket name');
     }

@@ -52,7 +52,10 @@ io.on('connection', function (socket) {
             let indexOfRoom = rooms.findIndexOfRoom(socket);
 
             if (indexOfRoom === -1) {
-                rooms.push({ room: data.idOfRoom, players: 1, timer: 10, currentPlayer: '', orderOfPlayers: [] });
+                rooms.push({
+                    room: data.idOfRoom, players: 1, timer: 10,
+                    currentPlayer: '', orderOfPlayers: [], playersWhoAlreadyPainted: [],
+                });
             }
             else {
                 rooms[indexOfRoom]['players'] += 1;
@@ -122,6 +125,7 @@ io.on('connection', function (socket) {
 
         rooms[indexOfRoom]['currentPlayer'] = data.currentPlayer;
         rooms[indexOfRoom]['orderOfPlayers'] = data.orderOfPlayers;
+        rooms[indexOfRoom]['playersWhoAlreadyPainted'] = data.playersWhoAlreadyPainted;
     });
 
     socket.on('player joined in the middle of the game', function () {
@@ -130,9 +134,10 @@ io.on('connection', function (socket) {
         let currentPlayer = rooms[indexOfRoom]['currentPlayer'];
         let timer = rooms[indexOfRoom]['timer'];
         let orderOfPlayers = rooms[indexOfRoom]['orderOfPlayers'];
+        let playersWhoAlreadyPainted = rooms[indexOfRoom]['playersWhoAlreadyPainted'];
 
         socket.emit('player joined in the middle of the game',
-            { currentPlayer, timer, orderOfPlayers, username: socket.username });
+            { currentPlayer, timer, orderOfPlayers, playersWhoAlreadyPainted, username: socket.username });
     });
 
     socket.on('get current time', function () {

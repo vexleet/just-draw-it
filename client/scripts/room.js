@@ -98,15 +98,16 @@ function playerJoinedInTheMiddleOfTheGame() {
 
         socket.on('player joined in the middle of the game', function (data) {
             roundSeconds = data.timer - 1;
-            orderOfPlayers = data.orderOfPlayers;
+            orderOfPlayers = orderOfPlayers.concat(data.orderOfPlayers);
             currentPlayer = data.currentPlayer;
+            playersWhoAlreadyPainted = data.playersWhoAlreadyPainted;
 
             gameIsInProgress = true;
 
             let indexOfCurrentPlayer = orderOfPlayers.indexOf(currentPlayer);
             orderOfPlayers.splice(indexOfCurrentPlayer, 1);
 
-            playersWhoAlreadyPainted.push(currentPlayer);
+            orderOfPlayers.push(data.username);
 
             timer = setInterval(function () {
                 roundSeconds -= 1
@@ -125,7 +126,6 @@ function playerJoinedInTheMiddleOfTheGame() {
 
                     currentPlayer = orderOfPlayers.shift();
                     playersWhoAlreadyPainted.push(currentPlayer);
-                    console.log(orderOfPlayers, false);
 
                     let node = document.createElement("LI");
                     let textnode = document.createTextNode(`${currentPlayer} is drawing now.`);
@@ -159,9 +159,8 @@ function startGame() {
 
             currentPlayer = orderOfPlayers.shift();
             playersWhoAlreadyPainted.push(currentPlayer);
-            console.log(playersWhoAlreadyPainted);
 
-            socket.emit('change state of room', { currentPlayer, orderOfPlayers });
+            socket.emit('change state of room', { currentPlayer, orderOfPlayers, playersWhoAlreadyPainted });
 
             let node = document.createElement("LI");
             let textnode = document.createTextNode(`${currentPlayer} is drawing now.`);
@@ -175,7 +174,7 @@ function startGame() {
     currentPlayer = orderOfPlayers.shift();
     playersWhoAlreadyPainted.push(currentPlayer);
 
-    socket.emit('change state of room', { currentPlayer, orderOfPlayers });
+    socket.emit('change state of room', { currentPlayer, orderOfPlayers, playersWhoAlreadyPainted });
 
     let node = document.createElement("LI");
     let textnode = document.createTextNode(`${currentPlayer} is drawing now.`);
@@ -203,8 +202,7 @@ socket.on('connection', function (data) {
 
     if (gameIsInProgress) {
         orderOfPlayers.push(data.username);
-        console.log(orderOfPlayers);
-        socket.emit('change state of room', { currentPlayer, orderOfPlayers });
+        socket.emit('change state of room', { currentPlayer, orderOfPlayers, playersWhoAlreadyPainted });
     }
 
     scrollToBottom();
@@ -215,6 +213,12 @@ socket.on('disconnect', function (data) {
     let textnode = document.createTextNode(`${data.username} has left the room.`);
     node.appendChild(textnode);
     document.getElementById("messages").appendChild(node);
+
+    if (gameIsInProgress) {
+        let indexofPlayer = orderOfPlayers.indexOf(data.username);
+
+        orderOfPlayers.splice(indexofPlayer, 1);
+    }
 
     scrollToBottom();
 });
