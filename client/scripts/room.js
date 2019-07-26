@@ -10,7 +10,9 @@ let playersWhoAlreadyPainted = [];
 let currentPlayer = '';
 
 let timer;
+let startNextRound;
 let roundSeconds = 10;
+let newRoundStart = false;
 let timerElement = document.getElementById('timer');
 
 let usernameForm = document.getElementById('set-username');
@@ -124,29 +126,39 @@ function playerJoinedInTheMiddleOfTheGame() {
             orderOfPlayers.push(data.username);
 
             timer = setInterval(function () {
-                roundSeconds -= 1
+                if (roundSeconds <= 0 && !newRoundStart) {
+                    newRoundStart = true;
 
-                timerElement.innerHTML = roundSeconds;
+                    startNextRound = setTimeout(function () {
 
-                if (roundSeconds <= 0) {
-                    socket.emit('start round');
+                        socket.emit('start round');
 
-                    roundSeconds = 10;
+                        roundSeconds = 10;
 
-                    if (orderOfPlayers.length === 0) {
-                        orderOfPlayers = playersWhoAlreadyPainted;
-                        playersWhoAlreadyPainted = [];
+                        if (orderOfPlayers.length === 0) {
+                            orderOfPlayers = playersWhoAlreadyPainted;
+                            playersWhoAlreadyPainted = [];
+                        }
+
+                        currentPlayer = orderOfPlayers.shift();
+                        playersWhoAlreadyPainted.push(currentPlayer);
+
+                        let node = document.createElement("LI");
+                        let textnode = document.createTextNode(`${currentPlayer} is drawing now.`);
+                        node.appendChild(textnode);
+                        messagesList.appendChild(node);
+
+                        newRoundStart = false;
+
+                        scrollToBottom();
+                    }, 5000);
+                }
+                else {
+                    if (!newRoundStart) {
+                        roundSeconds -= 1
+
+                        timerElement.innerHTML = roundSeconds;
                     }
-
-                    currentPlayer = orderOfPlayers.shift();
-                    playersWhoAlreadyPainted.push(currentPlayer);
-
-                    let node = document.createElement("LI");
-                    let textnode = document.createTextNode(`${currentPlayer} is drawing now.`);
-                    node.appendChild(textnode);
-                    messagesList.appendChild(node);
-
-                    scrollToBottom();
                 }
             }, 1000);
         });
@@ -157,31 +169,39 @@ function startGame() {
     timer = setInterval(function () {
         socket.emit('timer test', roundSeconds);
 
-        roundSeconds -= 1
+        if (roundSeconds <= 0 && !newRoundStart) {
+            newRoundStart = true;
+            startNextRound = setTimeout(function () {
+                socket.emit('start round');
+                if (orderOfPlayers.length === 0) {
+                    orderOfPlayers = playersWhoAlreadyPainted;
+                    playersWhoAlreadyPainted = [];
+                }
 
-        timerElement.innerHTML = roundSeconds;
+                roundSeconds = 10;
 
-        if (roundSeconds <= 0) {
-            socket.emit('start round');
+                currentPlayer = orderOfPlayers.shift();
+                playersWhoAlreadyPainted.push(currentPlayer);
 
-            if (orderOfPlayers.length === 0) {
-                orderOfPlayers = playersWhoAlreadyPainted;
-                playersWhoAlreadyPainted = [];
+                socket.emit('change state of room', { currentPlayer, orderOfPlayers, playersWhoAlreadyPainted });
+
+                let node = document.createElement("LI");
+                let textnode = document.createTextNode(`${currentPlayer} is drawing now.`);
+                node.appendChild(textnode);
+                messagesList.appendChild(node);
+
+                newRoundStart = false;
+
+                scrollToBottom();
+                clearTimeout(startNextRound);
+            }, 5000);
+        }
+        else {
+            if (!newRoundStart) {
+                roundSeconds -= 1
+
+                timerElement.innerHTML = roundSeconds;
             }
-
-            roundSeconds = 10;
-
-            currentPlayer = orderOfPlayers.shift();
-            playersWhoAlreadyPainted.push(currentPlayer);
-
-            socket.emit('change state of room', { currentPlayer, orderOfPlayers, playersWhoAlreadyPainted });
-
-            let node = document.createElement("LI");
-            let textnode = document.createTextNode(`${currentPlayer} is drawing now.`);
-            node.appendChild(textnode);
-            messagesList.appendChild(node);
-
-            scrollToBottom();
         }
     }, 1000);
 
